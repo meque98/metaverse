@@ -37,6 +37,7 @@ def make_won(a,b):
 def setKey():
     keys = list(os.getenv("OPENAI_API_KEYS").split(','))
     openai.api_key = keys[randint(0,len(keys)-1)]
+    Chat.logger.warn("key : " + str(openai.api_key))
 
 @Chat.route('/makeChat') # chat에 emoji랑 summary 추가 / role 추가 / user에 role_list에 추가 및 징수
 class Chatsimple(Resource):
@@ -142,4 +143,26 @@ class Chatsimple(Resource):
         chat_collection.find_one_and_update({"_id" : ObjectId(chat_id)},update,return_document=False)
         return {"result": response}
 
+@Chat.route('/translate')
+class Chatsimple(Resource):
+    def post(self):
+        text= request.json.get("text")
+        data = {
+              'source': 'en',
+              'target': 'ko',
+              'text': text,
+              #'honorific': True
+            }
+        url = 'https://naveropenapi.apigw.ntruss.com/nmt/v1/translation'
+        headers = {
+            'Content-Type': 'application/json',
+            'X-NCP-APIGW-API-KEY-ID': os.getenv("naver_id"),
+            'X-NCP-APIGW-API-KEY': os.getenv("naver_secret")
+        }
 
+        response2 = requests.post(url, headers=headers, data=json.dumps(data))
+        response_dict = json.loads(response2.content.decode('utf-8'))
+        if response2.status_code == 200:
+            translated_text = response_dict['message']['result']['translatedText']
+            return {"result": translated_text}
+        return {"result": text}
