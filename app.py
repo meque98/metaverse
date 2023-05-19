@@ -38,3 +38,5 @@ log_handler.setFormatter(log_formatter)  # 로그 파일 핸들러에 형식을 
 # 로깅 레벨에 따라 로그를 기록하도록 설정합니다. 이 예에서는 DEBUG 레벨 이상의 로그만 기록합니다.
 app.logger.setLevel(logging.INFO)  
 app.logger.addHandler(log_handler) 
+
+api.add_namespace(Chat, '/chat')
