@@ -2,7 +2,6 @@ from flask import Flask
 from flask_cors import CORS
 from flask_restx import Api
 import logging
-from chat import Chat
 from logging.handlers import RotatingFileHandler
 from english import English
 from japanese import Japanese
