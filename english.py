@@ -18,40 +18,42 @@ from tenacity import (
     wait_random_exponential,
 )  # for exponential backoff
 
-Chat = Namespace(
-    name="Chat",
-    description="Chatgpt와 채팅",
+English = Namespace(
+    name="English",
+    description="영어 교육",
 )
 
-system_message =[{'role' : 'system' , 'content' : "Please remember the instructions I gave you"}]
+system_message =[{'role' : 'system' , 'content' : "You're going to role play with me in English."}]
 client = MongoClient('mongodb://localhost:11084/', username= 'dba', password = '04231108')
 db = client['JUNGMO_FLASK']
 
+def setKey():
+    keys = list(os.getenv("OPENAI_API_KEYS").split(','))
+    openai.api_key = keys[randint(0,len(keys)-1)]
+    English.logger.warn("key : " + str(openai.api_key))
+
 @retry(wait=wait_random_exponential(min=1, max=1.5), stop=stop_after_attempt(6))
 def completions_with_backoff(**kwargs):
+    setKey()
     return openai.ChatCompletion.create(**kwargs)
 
 def make_won(a,b):
     return 1330*(a+b)/1000*0.002
 
-def setKey():
-    keys = list(os.getenv("OPENAI_API_KEYS").split(','))
-    openai.api_key = keys[randint(0,len(keys)-1)]
-    Chat.logger.warn("key : " + str(openai.api_key))
 
-@Chat.route('/makeChat') # chat에 emoji랑 summary 추가 / role 추가 / user에 role_list에 추가 및 징수
-class Chatsimple(Resource):
+@English.route('/makeChat') # chat에 emoji랑 summary 추가 / role 추가 / user에 role_list에 추가 및 징수
+class EnglishSimple(Resource):
     def post(self):
-        Chat.logger.info("/chat/makeChat")
+        English.logger.info("/chat/makeChat")
         problem = request.json.get('problem')
-        problem_collection = db['problem']
-        chat_collection = db['chat']
+        problem_collection = db['English']
+        chat_collection = db['EnglishChat']
         info = problem_collection.find_one({"_id": problem})
         info['count']+=1
         problem_collection.find_one_and_update({'_id' : problem}, {'$set':info},return_document=False)
         # 대화 생성
         new_conversation = []
-        for i in range(4):
+        for i in range(len(info['initial prompts'])):
             cur = {}
             cur['time'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             cur['token'] = 0
@@ -78,14 +80,13 @@ class Chatsimple(Resource):
         
         return {"chat_id": str(chat_id), "result": info['initial prompts'][-1]}
 
-@Chat.route('/askGPT')
-class Chatsimple(Resource):
+@English.route('/askGPT')
+class Englishsimple(Resource):
     def post(self):
-        setKey()
         chat_id = request.json.get('chat_id')
         text = request.json.get('text')
-        Chat.logger.info("/chat/askGPT "+ ", chat_id = "+chat_id)
-        chat_collection = db['chat']
+        English.logger.info("/chat/askGPT "+ ", chat_id = "+chat_id)
+        chat_collection = db['EnglishChat']
         chat = chat_collection.find_one({"_id" : ObjectId(chat_id)})
         chat['conversation'].append({
             "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
@@ -117,7 +118,10 @@ class Chatsimple(Resource):
 
         hi = completions_with_backoff(
                 model="gpt-3.5-turbo",
-                messages= cur_messages[:]
+                messages= cur_messages[:],
+                temperature= 0,
+                max_tokens=60,
+                stop='\n',
             )
         response=hi['choices'][0]['message']['content']
         output_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S") 
@@ -143,8 +147,8 @@ class Chatsimple(Resource):
         chat_collection.find_one_and_update({"_id" : ObjectId(chat_id)},update,return_document=False)
         return {"result": response}
 
-@Chat.route('/translate')
-class Chatsimple(Resource):
+@English.route('/translate')
+class Englishsimple(Resource):
     def post(self):
         text= request.json.get("text")
         data = {

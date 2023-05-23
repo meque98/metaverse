@@ -4,6 +4,8 @@ from flask_restx import Api
 import logging
 from chat import Chat
 from logging.handlers import RotatingFileHandler
+from english import English
+from japanese import Japanese
 
 
 app = Flask(__name__)
@@ -40,4 +42,5 @@ log_handler.setFormatter(log_formatter)  # 로그 파일 핸들러에 형식을 
 app.logger.setLevel(logging.INFO)  
 app.logger.addHandler(log_handler) 
 
-api.add_namespace(Chat, '/chat')
+api.add_namespace(Japanese, '/japanese')
+api.add_namespace(English, '/english')
