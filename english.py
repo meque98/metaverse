@@ -49,6 +49,7 @@ class EnglishSimple(Resource):
         problem_collection = db['English']
         chat_collection = db['EnglishChat']
         info = problem_collection.find_one({"_id": problem})
+        if 'count' not in info: info['count']=0
         info['count']+=1
         problem_collection.find_one_and_update({'_id' : problem}, {'$set':info},return_document=False)
         # 대화 생성
