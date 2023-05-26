@@ -23,7 +23,7 @@ English = Namespace(
     description="영어 교육",
 )
 
-system_message =[{'role' : 'system' , 'content' : "You're going to role play with me in English."}]
+system_message =[{'role' : 'system' , 'content' : "You're going to role play with me in English. You never engage in uncommon conversations in given role play and say only what's typical and necessary."}]
 client = MongoClient('mongodb://localhost:11084/', username= 'dba', password = '04231108')
 db = client['JUNGMO_FLASK']
 
@@ -120,9 +120,9 @@ class Englishsimple(Resource):
         hi = completions_with_backoff(
                 model="gpt-3.5-turbo",
                 messages= cur_messages[:],
+                max_tokens=100,
                 temperature= 0,
-                max_tokens=60,
-                stop='\n',
+                user = "Speak"
             )
         response=hi['choices'][0]['message']['content']
         output_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S") 
