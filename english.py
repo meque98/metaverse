@@ -171,3 +171,16 @@ class Englishsimple(Resource):
             translated_text = response_dict['message']['result']['translatedText']
             return {"result": translated_text}
         return {"result": text}
+
+@English.route('/device')
+class Englishsimple(Resource):
+    def post(self):
+        chat_id = request.json.get("chat_id")
+        width = request.json.get("width")
+        height = request.json.get("height")
+        chat_collection = db['EnglishChat']
+        chat = chat_collection.find_one({"_id" : ObjectId(chat_id)})
+        chat['width'] = width
+        chat['height'] = height
+        chat_collection.find_one_and_update({"_id" : ObjectId(chat_id)},{'$set': chat},return_document=False)
+        return {"result": "successfully inserted!"}
