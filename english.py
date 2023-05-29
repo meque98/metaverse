@@ -178,6 +178,7 @@ class Englishsimple(Resource):
         chat_id = request.json.get("chat_id")
         width = request.json.get("width")
         height = request.json.get("height")
+        English.logger.info("/english/device "+ ", chat_id = "+chat_id)
         chat_collection = db['EnglishChat']
         chat = chat_collection.find_one({"_id" : ObjectId(chat_id)})
         chat['width'] = width
